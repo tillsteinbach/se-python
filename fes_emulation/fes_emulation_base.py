@@ -5,7 +5,7 @@ import asyncio
 #from xknx.io import ConnectionConfig, ConnectionType
 
 import can
-from fes_emulation.stiebel_protocol import StiebelMessage, OperationType
+from fes_emulation.stiebel_protocol import StiebelMessage, StiebelWriteMessage, OperationType, Source, OperationTarget
 
 
 
@@ -31,12 +31,43 @@ def main():
     #await xknx.start()
     #await xknx.stop()
 
+    
+
     bus = can.interface.Bus(bustype='socketcan', channel='can0', bitrate=20000)
+
+    stiebelTemperature = StiebelWriteMessage(source=Source.DISPLAY_0,
+                                             operation_target=OperationTarget.HEATCIRCLE,
+                                             operation_subtarget=1,
+                                             variable=0xFA,
+                                             variable_extension=0x0011,
+                                             value=270)
+    try:
+        print(stiebelTemperature)
+        print(stiebelTemperature.toCanMessage())
+        bus.send(stiebelTemperature.toCanMessage())
+        print(f"Message sent on {bus.channel_info}")
+    except can.CanError:
+        print("Message NOT sent")
+    
+    stiebelFeuchte = StiebelWriteMessage(source=Source.DISPLAY_0,
+                                             operation_target=OperationTarget.HEATCIRCLE,
+                                             operation_subtarget=1,
+                                             variable=0xFA,
+                                             variable_extension=0x0075,
+                                             value=500)
+    try:
+        print(stiebelFeuchte)
+        print(stiebelFeuchte.toCanMessage())
+        bus.send(stiebelFeuchte.toCanMessage())
+        print(f"Message sent on {bus.channel_info}")
+    except can.CanError:
+        print("Message NOT sent")
+
     i = 0
     while True:
         recv = bus.recv(timeout=None)  # get received msg
         if recv is not None:
-            stiebelMsg = StiebelMessage.makeStiebelMessage(recv)
+            stiebelMsg = StiebelMessage.fromCanMessage(recv)
             if stiebelMsg.operation_type not in [OperationType.REQUEST, OperationType.RESPONSE]:
                 print(stiebelMsg)
             #print('[INFO -> Input] {}'.format(recv))

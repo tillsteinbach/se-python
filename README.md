@@ -1,2 +1,2 @@
-# fes-emulation
-Emulation of a FES Device using socket-can and input from KNX
+# se-python
+Library to communicate with SE heatpumps and other devices
